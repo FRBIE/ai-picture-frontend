@@ -44,8 +44,8 @@
   </div>
 </template>
 <script lang="ts" setup>
-import {computed, h, nextTick, ref} from 'vue'
-import { HomeOutlined } from '@ant-design/icons-vue'
+import {computed, h, ref} from 'vue'
+import { HomeOutlined ,LogoutOutlined} from '@ant-design/icons-vue'
 import {MenuProps, message} from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
@@ -76,6 +76,16 @@ const originItems = [
     label: '用户管理',
     title: '用户管理',
   },
+  {
+    key: '/add_picture',
+    label: '创建图片',
+    title: '创建图片',
+  },
+  {
+    key: '/admin/pictureManage',
+    label: '图片管理',
+    title: '图片管理',
+  }
 ]
 
 // 过滤菜单项
