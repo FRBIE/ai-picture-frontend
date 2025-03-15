@@ -1,10 +1,10 @@
 <template>
   <div class="url-picture-upload">
-    <a-input-group compact>
-      <a-input v-model:value="fileUrl" style="width: calc(100% - 200px)" />
-      <a-button type="primary" :loading="loading" @click="handleUpload">Submit</a-button>
+    <a-input-group compact style="margin-bottom: 16px">
+      <a-input v-model:value="fileUrl" style="width: calc(100% - 120px)" placeholder="请输入图片URL"/>
+      <a-button type="primary" :loading="loading" @click="handleUpload" style="width: 120px">Submit</a-button>
     </a-input-group>
-    <img v-if="picture?.url" :src="picture?.url" alt="picture">
+    <img v-if="picture?.url" :src="picture?.url" alt="picture" style="margin: 0 auto">
   </div>
 </template>
 <script lang="ts" setup>
