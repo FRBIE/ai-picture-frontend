@@ -68,7 +68,11 @@
 </template>
 <script setup lang="ts">
 // 数据
-import {listPictureTagCategoryUsingGet, listPictureVoByPageUsingPost} from '@/api/pictureController'
+import {
+  listPictureTagCategoryUsingGet,
+  listPictureVoByPageUsingPost,
+  listPictureVoByPageWithCacheUsingPost
+} from '@/api/pictureController'
 import { message } from 'ant-design-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import {useRouter} from "vue-router";
@@ -116,7 +120,7 @@ const fetchData = async () => {
       params.tags.push(tagList.value[index])
     }
   })
-  const res = await listPictureVoByPageUsingPost(params)
+  const res = await listPictureVoByPageWithCacheUsingPost(params)
   if (res.data.data) {
     dataList.value = res.data.data.records ?? []
     total.value = res.data.data.total ?? 0
