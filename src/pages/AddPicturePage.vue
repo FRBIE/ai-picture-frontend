@@ -135,7 +135,29 @@ const getOldPicture = async () => {
       pictureForm.name = data.name
       pictureForm.introduction = data.introduction
       pictureForm.category = data.category
-      pictureForm.tags = data.tags
+      // FIX: 解析后端返回的 JSON 字符串为 JavaScript 数组
+      try {
+        // 检查 data.tags 是否存在且是字符串，再进行解析
+        if (data.tags && typeof data.tags === 'string') {
+          const parsedTags = JSON.parse(data.tags);
+          // 确保解析结果确实是一个数组
+          if (Array.isArray(parsedTags)) {
+            pictureForm.tags = parsedTags;
+          } else {
+            // 如果解析结果不是数组，则默认为空数组
+            pictureForm.tags = [];
+          }
+        } else {
+          // 如果 data.tags 为空、undefined 或非字符串，则默认为空数组
+          pictureForm.tags = [];
+        }
+      } catch (e) {
+        // 处理 JSON 解析错误的可能性
+        console.error("解析图片标签数据出错:", e);
+        pictureForm.tags = []; // 出错时默认为空数组
+        message.error('解析标签数据失败');
+      }
+
     }
   }
 }
