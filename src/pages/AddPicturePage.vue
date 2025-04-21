@@ -3,6 +3,10 @@
     <h2 style="margin-bottom: 16px">
       {{ route.query?.id ? '修改图片' : '创建图片'}}
     </h2>
+    <a-typography-paragraph v-if="spaceId" type="secondary">
+      保存至空间：<a :href="`/space/${spaceId}`" target="_blank">{{ spaceId }}</a>
+    </a-typography-paragraph>
+
     <a-tabs v-model:activeKey="uploadType">
       <a-tab-pane key="file" tab="文件上传">
         <PictureUpload :picture="picture" :onSuccess="onSuccess "/>
@@ -49,7 +53,7 @@
 </template>
 <script setup lang="ts">
 import PictureUpload from '@/components/PictureUpload.vue'
-import { onMounted, reactive, ref } from 'vue'
+import {computed, onMounted, reactive, ref} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   editPictureUsingPost,
@@ -61,6 +65,10 @@ import UrlPictureUpload from "@/components/UrlPictureUpload.vue";
 const uploadType = ref<'file' | 'url'>('file')
 const picture = ref<API.PictureVO>()
 const pictureForm = reactive<API.PictureEditRequest>({})
+// 空间 id
+const spaceId = computed(() => {
+  return route.query?.spaceId
+})
 
 const onSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture
@@ -74,8 +82,10 @@ const handleSubmit = async (values: any) => {
   }
   const res = await editPictureUsingPost({
     id: pictureId,
+    spaceId: spaceId.value,
     ...values,
   })
+
   if (res.data.code === 0 && res.data.data) {
     message.success('创建成功')
     router.push({

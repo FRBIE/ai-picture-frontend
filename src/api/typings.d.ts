@@ -222,6 +222,7 @@ declare namespace API {
     id?: number
     introduction?: string
     name?: string
+    spaceId?: number
     tags?: string[]
   }
 
@@ -293,6 +294,7 @@ declare namespace API {
     picScale?: number
     picSize?: number
     picWidth?: number
+    spaceId?: number
     tags?: string[]
     thumbnailUrl?: string
     updateTime?: string
