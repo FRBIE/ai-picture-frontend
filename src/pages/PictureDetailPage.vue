@@ -3,10 +3,7 @@
     <!-- 图片展示区 -->
     <a-col :sm="24" :md="16" :xl="18">
       <a-card title="图片预览">
-        <a-image
-          style="max-height: 600px; object-fit: contain"
-          :src="picture.url"
-        />
+        <a-image style="max-height: 600px; object-fit: contain" :src="picture.url" />
       </a-card>
     </a-col>
     <!-- 图片信息区 -->
@@ -48,6 +45,19 @@
           <a-descriptions-item label="大小">
             {{ formatSize(picture.picSize) }}
           </a-descriptions-item>
+          <a-descriptions-item label="主色调">
+            <a-space>
+              {{ picture.picColor ?? '-' }}
+              <div
+                v-if="picture.picColor"
+                :style="{
+                  backgroundColor: toHexColor(picture.picColor),
+                  width: '16px',
+                  height: '16px',
+                }"
+              />
+            </a-space>
+          </a-descriptions-item>
         </a-descriptions>
         <a-space wrap>
           <a-button v-if="canEdit" type="default" @click="doEdit">
@@ -68,22 +78,28 @@
               <DownloadOutlined />
             </template>
           </a-button>
+          <a-button type="primary" ghost @click="doShare">
+            分享
+            <template #icon>
+              <ShareAltOutlined />
+            </template>
+          </a-button>
         </a-space>
-
       </a-card>
     </a-col>
   </a-row>
-
-
+  <ShareModal ref="shareModalRef" :link="shareLink" />
 </template>
 <script setup lang="ts">
-import {deletePictureUsingPost, getPictureVoByIdUsingGet} from "@/api/pictureController";
-import {computed, onMounted, ref} from "vue";
-import {message} from "ant-design-vue";
-import {downloadImage, formatSize} from "@/utils";
-import {useLoginUserStore} from "@/stores/useLoginUserStore";
-import router from "@/router";
-import { DownloadOutlined ,DeleteOutlined,EditOutlined} from '@ant-design/icons-vue'
+import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController'
+import { computed, onMounted, ref } from 'vue'
+import { message } from 'ant-design-vue'
+import {downloadImage, formatSize, toHexColor} from '@/utils'
+import { useLoginUserStore } from '@/stores/useLoginUserStore'
+import router from '@/router'
+import { DownloadOutlined, DeleteOutlined, EditOutlined ,ShareAltOutlined} from '@ant-design/icons-vue'
+import ShareModal from "@/components/ShareModal.vue";
+
 const props = defineProps<{
   id: string | number
 }>()
@@ -107,7 +123,7 @@ const fetchPictureDetail = async () => {
 const loginUserStore = useLoginUserStore()
 // 是否具有编辑权限
 const canEdit = computed(() => {
-  const loginUser = loginUserStore.loginUser;
+  const loginUser = loginUserStore.loginUser
   // 未登录不可编辑
   if (!loginUser.id) {
     return false
@@ -126,8 +142,8 @@ const doEdit = () => {
     path: '/add_picture',
     query: {
       id: picture.value.id,
-      spaceId: picture.value.spaceId
-    }
+      spaceId: picture.value.spaceId,
+    },
   })
 }
 
@@ -148,7 +164,17 @@ const doDelete = async () => {
 const doDownload = () => {
   downloadImage(picture.value.url)
 }
-
+// ----- 分享操作 ----
+const shareModalRef = ref()
+// 分享链接
+const shareLink = ref<string>()
+// 分享
+const doShare = () => {
+  shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.value.id}`
+  if (shareModalRef.value) {
+    shareModalRef.value.openModal()
+  }
+}
 
 </script>
 
