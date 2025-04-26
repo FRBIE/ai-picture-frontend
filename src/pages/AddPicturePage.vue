@@ -1,7 +1,7 @@
 <template>
   <div id="addPicturePage">
     <h2 style="margin-bottom: 16px">
-      {{ route.query?.id ? '修改图片' : '创建图片'}}
+      {{ route.query?.id ? '修改图片' : '创建图片' }}
     </h2>
     <a-typography-paragraph v-if="spaceId" type="secondary">
       保存至空间：<a :href="`/space/${spaceId}`" target="_blank">{{ spaceId }}</a>
@@ -9,12 +9,23 @@
 
     <a-tabs v-model:activeKey="uploadType">
       <a-tab-pane key="file" tab="文件上传">
-        <PictureUpload :picture="picture" :onSuccess="onSuccess "/>
+        <PictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
       <a-tab-pane key="url" tab="URL 上传">
-        <UrlPictureUpload :picture="picture" :onSuccess="onSuccess "/>
+        <UrlPictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
     </a-tabs>
+    <div v-if="picture" class="edit-bar">
+      <a-button :icon="h(EditOutlined)" @click="doEditPicture">编辑图片</a-button>
+      <ImageCropper
+        ref="imageCropperRef"
+        :imageUrl="picture.url"
+        :picture="picture"
+        :spaceId="spaceId"
+        :onSuccess="onCropSuccess"
+      />
+    </div>
+
     <a-form v-if="picture" layout="vertical" :model="pictureForm" @finish="handleSubmit">
       <a-form-item label="名称" name="name">
         <a-input v-model:value="pictureForm.name" placeholder="请输入名称" />
@@ -53,7 +64,7 @@
 </template>
 <script setup lang="ts">
 import PictureUpload from '@/components/PictureUpload.vue'
-import {computed, onMounted, reactive, ref} from 'vue'
+import { computed, onMounted, reactive, ref, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   editPictureUsingPost,
@@ -61,7 +72,10 @@ import {
   listPictureTagCategoryUsingGet,
 } from '@/api/pictureController'
 import { message } from 'ant-design-vue'
-import UrlPictureUpload from "@/components/UrlPictureUpload.vue";
+import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
+import { EditOutlined } from '@ant-design/icons-vue'
+import ImageCropper from "@/components/ImageCropper.vue";
+
 const uploadType = ref<'file' | 'url'>('file')
 const picture = ref<API.PictureVO>()
 const pictureForm = reactive<API.PictureEditRequest>({})
@@ -139,32 +153,50 @@ const getOldPicture = async () => {
       try {
         // 检查 data.tags 是否存在且是字符串，再进行解析
         if (data.tags && typeof data.tags === 'string') {
-          const parsedTags = JSON.parse(data.tags);
+          const parsedTags = JSON.parse(data.tags)
           // 确保解析结果确实是一个数组
           if (Array.isArray(parsedTags)) {
-            pictureForm.tags = parsedTags;
+            pictureForm.tags = parsedTags
           } else {
             // 如果解析结果不是数组，则默认为空数组
-            pictureForm.tags = [];
+            pictureForm.tags = []
           }
         } else {
           // 如果 data.tags 为空、undefined 或非字符串，则默认为空数组
-          pictureForm.tags = [];
+          pictureForm.tags = []
         }
       } catch (e) {
         // 处理 JSON 解析错误的可能性
-        console.error("解析图片标签数据出错:", e);
-        pictureForm.tags = []; // 出错时默认为空数组
-        message.error('解析标签数据失败');
+        console.error('解析图片标签数据出错:', e)
+        pictureForm.tags = [] // 出错时默认为空数组
+        message.error('解析标签数据失败')
       }
-
     }
   }
+}
+// 图片编辑弹窗引用
+const imageCropperRef = ref()
+
+// 编辑图片
+const doEditPicture = () => {
+  if (imageCropperRef.value) {
+    imageCropperRef.value.openModal()
+  }
+}
+
+// 编辑成功事件
+const onCropSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
 }
 </script>
 <style scoped>
 #addPicturePage {
   max-width: 720px;
   margin: 0 auto;
+}
+
+#addPicturePage .edit-bar {
+  text-align: center;
+  margin: 16px 0;
 }
 </style>
