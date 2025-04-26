@@ -28,6 +28,7 @@
         </a-checkable-tag>
       </a-space>
     </div>
+    <div style="margin-bottom: 16px" />
     <!-- 图片列表 -->
     <PictureList :dataList="dataList" :loading="loading" />
     <a-pagination
