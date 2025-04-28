@@ -9,14 +9,16 @@
       <template #renderItem="{ item: picture }">
         <a-list-item style="padding: 0">
           <!-- 单张图片 -->
-          <a-card hoverable @click="doClickPicture(picture)">
+          <a-card hoverable class="picture-card" @click="doClickPicture(picture)">
             <template #cover>
-              <img
-                style="height: 180px; object-fit: cover"
-                :alt="picture.name"
-                :src="picture.thumbnailUrl ?? picture.url"
-                loading="lazy"
-              />
+              <div class="img-wrapper">
+                <img
+                  style="height: 180px; object-fit: cover"
+                  :alt="picture.name"
+                  :src="picture.thumbnailUrl ?? picture.url"
+                  loading="lazy"
+                />
+              </div>
             </template>
             <a-card-meta :title="picture.name">
               <template #description>
@@ -67,8 +69,7 @@ import {
   ShareAltOutlined,
 } from '@ant-design/icons-vue'
 import { ref } from 'vue'
-import ShareModal from "@/components/ShareModal.vue";
-
+import ShareModal from '@/components/ShareModal.vue'
 
 interface Props {
   dataList?: API.PictureVO[]
@@ -142,4 +143,34 @@ const doShare = (picture: API.PictureVO, e: Event) => {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.picture-list {
+  margin-bottom: 20px;
+}
+
+.picture-card {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.picture-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.img-wrapper {
+  overflow: hidden;
+  position: relative;
+}
+
+.img-wrapper img {
+  transition: all 0.5s ease;
+  width: 100%;
+}
+
+.picture-card:hover .img-wrapper img {
+  transform: scale(1.05);
+}
+</style>
