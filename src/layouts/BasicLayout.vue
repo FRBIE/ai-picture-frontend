@@ -4,7 +4,7 @@
       <a-layout-header class="header">
         <GlobalHeader />
       </a-layout-header>
-      <a-layout>
+      <a-layout class="main-layout">
         <a-layout-sider
           v-if="loginUserStore.loginUser.id"
           class="sider"
@@ -41,6 +41,11 @@ const loginUserStore = useLoginUserStore()
   margin-bottom: 1px;
 }
 
+#basicLayout .main-layout {
+  flex: 1;
+  display: flex;
+}
+
 #basicLayout .sider {
   background: #fff;
   border-right: 0.5px solid #eee;
@@ -55,6 +60,9 @@ const loginUserStore = useLoginUserStore()
 #basicLayout .content {
   padding: 28px;
   background: linear-gradient(to right, #fefefe, #fff);
-  margin-bottom: 28px;
+}
+
+#basicLayout .footer {
+  text-align: center;
 }
 </style>

@@ -11,18 +11,19 @@
         mode="inline"
         :items="menuItems"
         @click="doMenuClick"
+        class="full-height-menu"
       />
     </a-layout-sider>
   </div>
 </template>
 <script lang="ts" setup>
-import {computed, h, ref, watchEffect} from 'vue'
+import { computed, h, ref, watchEffect } from 'vue'
 import { PictureOutlined, UserOutlined, TeamOutlined } from '@ant-design/icons-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { SPACE_TYPE_ENUM } from '@/constants/space'
 import { listMyTeamSpaceUsingPost } from '@/api/spaceUserController'
-import {message} from "ant-design-vue";
+import { message } from 'ant-design-vue'
 
 const loginUserStore = useLoginUserStore()
 
@@ -106,5 +107,11 @@ const doMenuClick = ({ key }) => {
 <style scoped>
 #globalSider .ant-layout-sider {
   background: none;
+  height: 100%;
+}
+
+.full-height-menu {
+  height: 100%;
+  border-right: none;
 }
 </style>
