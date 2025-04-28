@@ -32,7 +32,9 @@
         >
           空间分析
         </a-button>
-        <a-button v-if="canEditPicture" :icon="h(EditOutlined)" @click="doBatchEdit"> 批量编辑</a-button>
+        <a-button v-if="canEditPicture" :icon="h(EditOutlined)" @click="doBatchEdit">
+          批量编辑</a-button
+        >
 
         <a-tooltip
           :title="`占用空间 ${formatSize(space.totalSize)} / ${formatSize(space.maxSize)}`"
@@ -46,13 +48,27 @@
       </a-space>
     </a-flex>
     <div style="margin-bottom: 16px" />
-    <!-- 搜索表单 -->
-    <PictureSearchForm :onSearch="onSearch" />
+
+    <!-- 搜索区域 -->
+    <a-card class="search-card">
+      <a-flex justify="space-between" align="center" style="margin-bottom: 16px">
+        <div class="search-card-header">
+          <span class="search-card-title">图片搜索</span>
+          <span class="search-card-count">共 {{ total }} 张图片</span>
+        </div>
+      </a-flex>
+
+      <!-- 搜索表单 -->
+      <PictureSearchForm :onSearch="onSearch" class="search-form" />
+
+      <!-- 按颜色搜索 -->
+      <div class="color-search">
+        <span class="color-search-label">按颜色搜索：</span>
+        <color-picker format="hex" @pureColorChange="onColorChange" />
+      </div>
+    </a-card>
+
     <div style="margin-bottom: 16px" />
-    <!-- 按颜色搜索，跟其他搜索条件独立 -->
-    <a-form-item label="按颜色搜索">
-      <color-picker format="hex" @pureColorChange="onColorChange" />
-    </a-form-item>
 
     <!-- 图片列表 -->
     <PictureList
@@ -81,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, onMounted, reactive, ref ,watch ,computed} from 'vue'
+import { h, onMounted, reactive, ref, watch, computed } from 'vue'
 import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import { message } from 'ant-design-vue'
 import {
@@ -94,8 +110,8 @@ import PictureSearchForm from '@/components/PictureSearchForm.vue'
 import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
 import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
-import { EditOutlined, BarChartOutlined ,TeamOutlined} from '@ant-design/icons-vue'
-import {SPACE_PERMISSION_ENUM, SPACE_TYPE_MAP} from '@/constants/space'
+import { EditOutlined, BarChartOutlined, TeamOutlined } from '@ant-design/icons-vue'
+import { SPACE_PERMISSION_ENUM, SPACE_TYPE_MAP } from '@/constants/space'
 
 interface Props {
   id: string | number
@@ -223,7 +239,7 @@ watch(
   (newSpaceId) => {
     fetchSpaceDetail()
     fetchData()
-  },
+  }
 )
 </script>
 
@@ -234,5 +250,46 @@ watch(
 
 .picture-search-form .ant-form-item {
   margin-top: 16px;
+}
+
+.search-card {
+  margin-bottom: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.search-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-card-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.search-card-count {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.color-search {
+  display: flex;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.color-search-label {
+  margin-right: 12px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* 设置搜索表单底部外边距 */
+:deep(.search-form) {
+  margin-bottom: 0;
 }
 </style>
