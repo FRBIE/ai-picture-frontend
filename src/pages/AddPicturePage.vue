@@ -6,12 +6,14 @@
     <a-typography-paragraph v-if="spaceId" type="secondary">
       保存至空间：<a :href="`/space/${spaceId}`" target="_blank">{{ spaceId }}</a>
     </a-typography-paragraph>
-
+    <!-- 选择上传方式 -->
     <a-tabs v-model:activeKey="uploadType">
       <a-tab-pane key="file" tab="文件上传">
+        <!-- 图片上传组件 -->
         <PictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
-      <a-tab-pane key="url" tab="URL 上传">
+      <a-tab-pane key="url" tab="URL 上传" force-render>
+        <!-- URL 图片上传组件 -->
         <UrlPictureUpload :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
     </a-tabs>
@@ -29,6 +31,7 @@
         :imageUrl="picture?.url"
         :picture="picture"
         :spaceId="spaceId"
+        :space="space"
         :onSuccess="onCropSuccess"
       />
       <ImageOutPainting
@@ -38,35 +41,40 @@
         :onSuccess="onImageOutPaintingSuccess"
       />
     </div>
-
-    <a-form v-if="picture" layout="vertical" :model="pictureForm" @finish="handleSubmit">
-      <a-form-item label="名称" name="name">
-        <a-input v-model:value="pictureForm.name" placeholder="请输入名称" />
+    <!-- 图片信息表单 -->
+    <a-form
+      v-if="picture"
+      name="pictureForm"
+      layout="vertical"
+      :model="pictureForm"
+      @finish="handleSubmit"
+    >
+      <a-form-item name="name" label="名称">
+        <a-input v-model:value="pictureForm.name" placeholder="请输入名称" allow-clear />
       </a-form-item>
-      <a-form-item label="简介" name="introduction">
+      <a-form-item name="introduction" label="简介">
         <a-textarea
           v-model:value="pictureForm.introduction"
           placeholder="请输入简介"
-          :rows="2"
-          autoSize
-          allowClear
+          :auto-size="{ minRows: 2, maxRows: 5 }"
+          allow-clear
         />
       </a-form-item>
-      <a-form-item label="分类" name="category">
+      <a-form-item name="category" label="分类">
         <a-auto-complete
           v-model:value="pictureForm.category"
           placeholder="请输入分类"
           :options="categoryOptions"
-          allowClear
+          allow-clear
         />
       </a-form-item>
-      <a-form-item label="标签" name="tags">
+      <a-form-item name="tags" label="标签">
         <a-select
           v-model:value="pictureForm.tags"
-          :options="tagOptions"
           mode="tags"
           placeholder="请输入标签"
-          allowClear
+          :options="tagOptions"
+          allow-clear
         />
       </a-form-item>
       <a-form-item>
@@ -75,24 +83,29 @@
     </a-form>
   </div>
 </template>
+
 <script setup lang="ts">
 import PictureUpload from '@/components/PictureUpload.vue'
-import { computed, onMounted, reactive, ref, h } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import {computed, h, onMounted, reactive, ref, watchEffect} from 'vue'
+import { message } from 'ant-design-vue'
 import {
   editPictureUsingPost,
-  getPictureByIdUsingGet,
+  getPictureVoByIdUsingGet,
   listPictureTagCategoryUsingGet,
-} from '@/api/pictureController'
-import { message } from 'ant-design-vue'
+} from '@/api/pictureController.ts'
+import { useRoute, useRouter } from 'vue-router'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
-import { EditOutlined,FullscreenOutlined } from '@ant-design/icons-vue'
 import ImageCropper from '@/components/ImageCropper.vue'
-import ImageOutPainting from "@/components/ImageOutPainting.vue";
+import { EditOutlined, FullscreenOutlined } from '@ant-design/icons-vue'
+import ImageOutPainting from '@/components/ImageOutPainting.vue'
+import {getSpaceVoByIdUsingGet} from "@/api/spaceController.ts";
 
-const uploadType = ref<'file' | 'url'>('file')
+const router = useRouter()
+const route = useRoute()
+
 const picture = ref<API.PictureVO>()
 const pictureForm = reactive<API.PictureEditRequest>({})
+const uploadType = ref<'file' | 'url'>('file')
 // 空间 id
 const spaceId = computed(() => {
   return route.query?.spaceId
@@ -102,7 +115,6 @@ const onSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture
   pictureForm.name = newPicture.name
 }
-const router = useRouter()
 const handleSubmit = async (values: any) => {
   const pictureId = picture.value.id
   if (!pictureId) {
@@ -113,11 +125,10 @@ const handleSubmit = async (values: any) => {
     spaceId: spaceId.value,
     ...values,
   })
-
   if (res.data.code === 0 && res.data.data) {
     message.success('创建成功')
     router.push({
-      path: `picture/${pictureId}`,
+      path: `/picture/${pictureId}`,
     })
   } else {
     message.error('创建失败，' + res.data.message)
@@ -142,20 +153,18 @@ const getTagCategoryOptions = async () => {
       }
     })
   } else {
-    message.error('加载选项失败,' + res.data.message)
+    message.error('获取标签分类列表失败，' + res.data.message)
   }
 }
+
 onMounted(() => {
   getTagCategoryOptions()
-  getOldPicture()
 })
-const route = useRoute()
-
 const getOldPicture = async () => {
   const id = route.query?.id
   if (id) {
-    const res = await getPictureByIdUsingGet({
-      id: id,
+    const res = await getPictureVoByIdUsingGet({
+      id,
     })
     if (res.data.code === 0 && res.data.data) {
       const data = res.data.data
@@ -163,39 +172,21 @@ const getOldPicture = async () => {
       pictureForm.name = data.name
       pictureForm.introduction = data.introduction
       pictureForm.category = data.category
-      // FIX: 解析后端返回的 JSON 字符串为 JavaScript 数组
-      try {
-        // 检查 data.tags 是否存在且是字符串，再进行解析
-        if (data.tags && typeof data.tags === 'string') {
-          const parsedTags = JSON.parse(data.tags)
-          // 确保解析结果确实是一个数组
-          if (Array.isArray(parsedTags)) {
-            pictureForm.tags = parsedTags
-          } else {
-            // 如果解析结果不是数组，则默认为空数组
-            pictureForm.tags = []
-          }
-        } else {
-          // 如果 data.tags 为空、undefined 或非字符串，则默认为空数组
-          pictureForm.tags = []
-        }
-      } catch (e) {
-        // 处理 JSON 解析错误的可能性
-        console.error('解析图片标签数据出错:', e)
-        pictureForm.tags = [] // 出错时默认为空数组
-        message.error('解析标签数据失败')
-      }
+      pictureForm.tags = data.tags
     }
   }
 }
-// 图片编辑弹窗引用
+
+onMounted(() => {
+  getOldPicture()
+})
+
+// ----- 图片编辑器引用 ------
 const imageCropperRef = ref()
 
 // 编辑图片
-const doEditPicture = () => {
-  if (imageCropperRef.value) {
-    imageCropperRef.value.openModal()
-  }
+const doEditPicture = async () => {
+  imageCropperRef.value?.openModal()
 }
 
 // 编辑成功事件
@@ -208,14 +199,36 @@ const imageOutPaintingRef = ref()
 
 // 打开 AI 扩图弹窗
 const doImagePainting = async () => {
-  imageOutPaintingRef.value.openModal()
+  imageOutPaintingRef.value?.openModal()
 }
 
 // AI 扩图保存事件
 const onImageOutPaintingSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture
 }
+
+// 获取空间信息
+const space = ref<API.SpaceVO>()
+
+// 获取空间信息
+const fetchSpace = async () => {
+  // 获取数据
+  if (spaceId.value) {
+    const res = await getSpaceVoByIdUsingGet({
+      id: spaceId.value,
+    })
+    if (res.data.code === 0 && res.data.data) {
+      space.value = res.data.data
+    }
+  }
+}
+
+watchEffect(() => {
+  fetchSpace()
+})
+
 </script>
+
 <style scoped>
 #addPicturePage {
   max-width: 720px;
@@ -227,3 +240,4 @@ const onImageOutPaintingSuccess = (newPicture: API.PictureVO) => {
   margin: 16px 0;
 }
 </style>
+
